@@ -1,6 +1,8 @@
 # Tottenham Summer Squad Builder 2026
 
-**COYS!** After a dreadful 2025/26 season, Roberto de Zerbi needs *your* help building Tottenham's squad for summer 2026. No coding experience required — just Python and a terminal.
+**Never coded in your life? You can still get this running in a few minutes.** You don't need to understand programming or edit any game files — just follow the step-by-step guide below: install Python, download the project, open Terminal in the folder, and run one command. That's it.
+
+**COYS!** After a dreadful 2025/26 season, Roberto de Zerbi needs *your* help building Tottenham's squad for summer 2026.
 
 ```
   <o)
