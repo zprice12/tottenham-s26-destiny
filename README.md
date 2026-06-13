@@ -59,32 +59,83 @@ Sell players. Sign stars. Loan out fringe players. Build your 4-3-3 depth chart.
 
 ---
 
-## Step 2: Download This Project
+## Step 2: Get This Project on Your Computer
 
-1. Download or clone this folder to your computer (e.g. `Downloads/tottenham-s26-destiny`)
-2. You should see files like `main.py`, `config.json`, an `assets` folder, and a `data` folder
+Open the project on GitHub in your browser. Click the green **Code** dropdown (near the top right of the file list).
+
+You have two options:
+
+### Option A: Download ZIP (easiest — no Git required)
+
+1. In the **Code** dropdown, click **Download ZIP**
+2. Open your **Downloads** folder and double-click the ZIP to unzip it
+3. You should get a folder named something like `tottenham-s26-destiny-main` or `tottenham-s26-destiny`
+4. **Optional:** Drag that folder anywhere you like (Desktop, Documents, etc.) — the game works the same; only the path you type in Terminal changes (see Step 3)
+
+Inside the folder you should see `main.py`, `config.json`, an `assets` folder, and a `data` folder.
+
+### Option B: Clone with Git (if you already use Git)
+
+1. In the **Code** dropdown, copy the HTTPS or SSH URL
+2. Open Terminal (Mac) or Command Prompt (Windows) and run:
+   ```bash
+   git clone PASTE_THE_URL_HERE
+   ```
+3. A `tottenham-s26-destiny` folder will be created in whatever directory you ran that command from (often your home folder or Desktop)
 
 ---
 
 ## Step 3: Open Terminal in the Project Folder
 
-### On Mac
+Before you can run the game, Terminal needs to be **inside** the project folder. The command for that is `cd` (“change directory”). The path depends on where you put the folder.
 
-Replace the path below with wherever you saved the folder:
+### If you used Download ZIP and left it in Downloads (default)
 
+**Mac:**
 ```bash
 cd ~/Downloads/tottenham-s26-destiny
 ```
+If the unzipped folder has a different name (e.g. `tottenham-s26-destiny-main`), use that name instead:
+```bash
+cd ~/Downloads/tottenham-s26-destiny-main
+```
 
-**Tip:** You can type `cd ` (with a space) and then drag the folder into Terminal to auto-fill the path.
-
-### On Windows
-
-Replace the path below with wherever you saved the folder:
-
+**Windows:**
 ```cmd
 cd C:\Users\YourName\Downloads\tottenham-s26-destiny
 ```
+Replace `YourName` with your Windows username. If the folder name after unzipping is different, use that name instead.
+
+### If you moved the folder somewhere else
+
+You need the **full path** to the folder, then:
+```bash
+cd FULL/PATH/TO/tottenham-s26-destiny
+```
+
+**Mac — easy way to get the path:**
+1. Open Terminal
+2. Type `cd ` (with a space after it)
+3. Drag the project folder from Finder into the Terminal window — the path fills in automatically
+4. Press Enter
+
+**Mac — copy path from Finder:**
+1. Right-click the folder (or Control-click)
+2. Hold **Option** — **Copy … as Pathname** appears
+3. In Terminal: `cd ` then paste (Cmd + V) and press Enter
+
+**Windows — easy way:**
+1. Open Command Prompt
+2. Type `cd ` then drag the folder into the window, or paste the path you copied from File Explorer
+3. Press Enter
+
+**Windows — copy path from File Explorer:**
+1. Open the folder in File Explorer
+2. Click the address bar at the top — the full path is selected
+3. Copy it (Ctrl + C)
+4. In Command Prompt: `cd ` paste the path (Ctrl + V) and press Enter
+
+**Tip:** You only need to `cd` into the folder once per Terminal session. If you close Terminal, run `cd` again next time before `python3 main.py` or `python main.py`.
 
 ---
 
@@ -245,7 +296,7 @@ Python isn't installed or isn't on your PATH.
 
 ### "No such file or directory"
 
-You're not in the right folder. Use `cd` to navigate to where you saved the project, then try again.
+You're not in the right folder. See **Step 3** — use `cd` with the full path to your project folder, then run the game again.
 
 ### On Mac, try `python3` instead of `python`
 
@@ -269,11 +320,7 @@ Open Terminal (Mac) or Command Prompt (Windows), then:
 
 ### 1. Go to the project folder
 
-```bash
-cd ~/Downloads/tottenham-s26-destiny
-```
-
-(Use your actual path on Windows, e.g. `cd C:\Users\YourName\Downloads\tottenham-s26-destiny`)
+See **Step 3** above — use the `cd` command that matches where you saved the folder (Downloads by default, or your own path).
 
 ### 2. Start with a clean slate (optional)
 
