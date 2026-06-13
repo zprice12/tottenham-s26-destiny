@@ -1,0 +1,26 @@
+{
+  "starting_budget_m": 100,
+  "loan_wage_savings_m": 2,
+  "max_squad_size": 25,
+  "max_non_homegrown": 17,
+  "max_tottenham_sales": 8,
+  "budget_warning_only": true,
+  "slots_per_position": 3,
+  "roberto_typing_delay": 0.03,
+  "roberto_pause_between_lines": 0.8,
+  "roberto_pause_after_bubble": 1.2,
+  "screen_clear_on_redraw": true,
+  "formation": [
+    {"key": "GK", "label": "Goalkeeper", "order": 1},
+    {"key": "RB", "label": "Right Back", "order": 2},
+    {"key": "LB", "label": "Left Back", "order": 3},
+    {"key": "RCB", "label": "Right Centre Back", "order": 4},
+    {"key": "LCB", "label": "Left Centre Back", "order": 5},
+    {"key": "LCM", "label": "Left Centre Mid", "order": 6},
+    {"key": "RW", "label": "Right Wing", "order": 7},
+    {"key": "RCM", "label": "Right Centre Mid", "order": 8},
+    {"key": "ST", "label": "Striker", "order": 9},
+    {"key": "CAM", "label": "Centre Attacking Mid", "order": 10},
+    {"key": "LW", "label": "Left Wing", "order": 11}
+  ]
+}
