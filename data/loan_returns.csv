@@ -1,4 +1,13 @@
 id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
-gil-1,Bryan Gil,Spain,LW,24,12,12,2,48077,no
-phillips-2,Rodrigo Bentancur,Uruguay,CM,28,20,20,2,86538,no
-harvey-3,Harvey White,England,CM,23,2,2,1,11538,yes
+vuskovic-1,Luka Vuskovic,Croatia,RCB,19,60,60,4,10000,no
+min-hyeok-2,Yang Min-Hyeok,South Korea,RW,20,5,5,4,5000,no
+solomon-3,Manor Solomon,Israel,LW,26,10,10,2,60000,no
+phillips-4,Ashley Phillips,England,RCB,20,15,15,2,25000,no
+veliz-5,Alejo Veliz,Argentina,ST,22,5,5,3,25000,no
+devine-6,Alfie Devine,England,CAM,21,5,5,1,25000,yes
+takai-7,Kota Takai,Japan,LCB,21,5,5,4,25000,no
+scarlett-8,Dane Scarlett,England,ST,22,5,5,1,15000,yes
+moore-9,Mikey Moore,England,LW,18,20,20,4,15000,no
+lankshear-10,Will Lankshear,England,ST,21,20,20,3,25000,yes
+dorrington-11,Alfie Dorrington,England,RCB,21,5,5,3,10000,yes
+hall-12,Tyrese Hall,England,RCM,20,5,5,3,10000,no

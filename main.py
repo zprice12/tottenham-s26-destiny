@@ -72,26 +72,32 @@ def run_intro(cfg: dict) -> None:
             "You are Tottenham's sporting director.",
         ],
         [
-            f"You have {cfg['starting_budget_m']} million pounds to spend.",
-            "Sell players to raise more funds.",
-            f"Loan players out to save {int(cfg['loan_wage_savings_m'] + 0.5)}M in wages each.",
+            f"You start with {cfg['starting_budget_m']} million pounds.",
+            "Sell players to raise funds. Buy from the market or buy back sold players.",
+            f"Loan players out — +{int(cfg['loan_wage_savings_m'] + 0.5)}M budget "
+            f"(+{int(cfg.get('academy_loan_wage_savings_m', 1) + 0.5)}M for academy).",
+            "Keep an eye on budget and wages at the top of the screen.",
         ],
         [
-            f"Squad rules: {cfg['max_squad_size']} players max.",
-            f"Only {cfg['max_non_homegrown']} can be non-homegrown.",
-            f"You may sell only {cfg['max_tottenham_sales']} from the current",
-            "squad and injured list. Loan returns? Sell as many as you like.",
+            f"Roster: max {cfg['max_squad_size']} on the PITCH counting "
+            f"(under-{cfg.get('roster_u21_exempt_age', 21)} exempt).",
+            f"Non-homegrown: max {cfg['max_non_homegrown']} on the pitch "
+            f"(U{cfg.get('roster_u21_exempt_age', 21)} exempt).",
+            f"Sell up to {cfg['max_tottenham_sales']} from the current first-team squad.",
+            "Loan returns? Sell as many as you like — doesn't count toward the 8.",
         ],
         [
-            "Injured, loan returns, and academy are on the LEFT.",
-            "Sold and loaned-out players are on the RIGHT — undo from there.",
-            "Everyone on the pitch is in a position slot. No bench.",
-            "Filled slots must be cleared before placing someone new.",
+            "Injured must be placed on pitch — cannot sell or loan.",
+            "Loan returns: place, sell, or loan out before finishing.",
+            "Left panel: Injured, loan returns, academy.",
+            "Right panel: Sold and loaned out — buy back or recall from there.",
+            "Pitch: 3 slots per position (a/b/c). Clear filled slots first.",
         ],
         [
-            "And yes — injured players will ALL be fit by August.",
+            "And yes — every injured player will be fit by August.",
             "Lucky us! SO fortunate with injuries these past two seasons...",
-            "Pick a player [P], buy [B], finish [F]. Fullscreen recommended!",
+            "Pick a player [P], buy from the market [B], check the squad [I].",
+            "Finish when you're ready [F]. Exit to the menu [E].",
         ],
     ]
     for i, bubble in enumerate(bubbles):
@@ -106,7 +112,7 @@ def run_welcome_back(manager: SquadManager, cfg: dict) -> None:
         [
             f"Welcome back to '{manager.team_name}'!",
             f"This build is {status}.",
-            "Pick a player [P], buy [B], finish [F], or exit [E].",
+            "Pick a player [P], buy [B], info [I], finish [F], or exit [E].",
         ],
         cfg,
     )
@@ -311,7 +317,9 @@ def _player_action_menu(manager: SquadManager, player: Player, cfg: dict) -> Non
         options.append(("Place on pitch (buy back)", "place"))
     elif player.status == "loaned_out":
         options.append(("Place on pitch (recall)", "place"))
-    elif player.status in ("injured", "loan_return", "academy"):
+    elif player.status == "injured":
+        options.append(("Place on pitch", "place"))
+    elif player.status in ("loan_return", "academy"):
         options.extend([
             ("Place on pitch", "place"),
             ("Sell", "sell"),

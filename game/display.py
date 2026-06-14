@@ -9,6 +9,7 @@ from game.ascii_art import (
     ROBERTO_STANDING_WIDTH,
     SCREENSHOT_BANNER,
     print_logo,
+    print_triple_logo_row,
     standing_lines_padded,
 )
 from game.formatting import fmt_m
@@ -251,20 +252,44 @@ def _render_warnings(warnings: list[str]) -> None:
     print("  " + "=" * width)
 
 
+def _roster_header_line(manager: SquadManager) -> str:
+    max_sz = manager.config["max_squad_size"]
+    counted = manager.roster_count()
+    u21 = manager.u21_exempt_count()
+    on_pitch = manager.squad_players_on_pitch()
+    players = f"On squad: {counted}/{max_sz}"
+    if u21:
+        players += f"  (+{u21} U21 exempt)"
+    return players
+
+
+def _non_hg_header_line(manager: SquadManager) -> str:
+    max_nhg = manager.config["max_non_homegrown"]
+    counted = manager.non_homegrown_count()
+    u21 = manager.u21_non_hg_exempt_count()
+    line = f"Non-HG: {counted}/{max_nhg}"
+    if u21:
+        line += f"  (+{u21} U21 exempt)"
+    return line
+
+
 def render_header(manager: SquadManager) -> None:
-    print_logo()
+    print()
+    print_triple_logo_row()
+    print()
     squad_label = manager.team_name or "Unnamed Squad"
     status = "COMPLETE" if manager.completed else "IN PROGRESS"
-    print("  TOTTENHAM HOTSPUR FC  |  Summer Squad Builder 2026")
-    print(f"  Squad: {squad_label}  [{status}]")
-    print(
-        f"  Budget: {fmt_m(manager.budget_m)}  |  "
-        f"Players: {manager.roster_count()}/{manager.config['max_squad_size']}  |  "
-        f"Non-HG: {manager.non_homegrown_count()}/{manager.config['max_non_homegrown']}  |  "
-        f"Sales: {manager.tottenham_sales_count}/{manager.config['max_tottenham_sales']}"
-    )
-    _render_warnings(manager.get_warnings())
+    print("  TOTTENHAM HOTSPUR FC")
+    print("  Summer Squad Builder 2026")
+    print()
+    print(f"  Squad: {squad_label}   [{status}]")
+    print()
+    print(f"  Budget: {fmt_m(manager.budget_m)}")
+    print(f"  {_roster_header_line(manager)}")
+    print(f"  {_non_hg_header_line(manager)}          Sales: {manager.tottenham_sales_count}/{manager.config['max_tottenham_sales']}")
     print(f"  Wages: {manager.total_wages_m_rounded()}M/yr")
+    print()
+    _render_warnings(manager.get_warnings())
     print()
 
 

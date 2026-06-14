@@ -1,19 +1,23 @@
 id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
-vicario-1,Guglielmo Vicario,Italy,GK,29,25,25,3,67308,no
-forster-2,Fraser Forster,England,GK,37,1,1,1,23077,yes
-austin-3,Brandon Austin,England,GK,26,0.5,0.5,2,7692,yes
-romero-4,Cristian Romero,Argentina,LCB,27,65,65,4,105769,no
-van-de-ven-5,Micky van de Ven,Netherlands,LCB,24,50,50,5,76923,no
-dragusin-6,Radu Dragusin,Romania,RCB,23,20,20,4,48077,no
-spence-7,Djed Spence,England,LB,25,12,12,3,38462,yes
-porro-8,Pedro Porro,Spain,RB,26,35,35,4,67308,no
-bissouma-9,Yves Bissouma,Mali,LCM,29,25,25,3,76923,no
-sarr-10,Pape Matar Sarr,Senegal,RCM,23,30,30,4,57692,no
-johnson-11,Brennan Johnson,Wales,RW,24,45,45,4,86538,no
-son-12,Heung-min Son,South Korea,LW,33,20,20,2,192308,no
-solomon-13,Manor Solomon,Israel,LW,26,15,15,3,57692,no
-richarlison-14,Richarlison,Brazil,ST,28,30,30,3,105769,no
-scarlett-15,Dane Scarlett,England,ST,21,8,8,3,15385,yes
-davies-16,Ben Davies,Wales,LCB,32,3,3,1,48077,yes
-gray-17,Archie Gray,England,CAM,19,25,25,5,28846,yes
-bergvall-18,Lucas Bergvall,Sweden,CAM,19,30,30,5,23077,no
+gka,Guglielmo Vicario,Italy,GK,29,25,25,2,75000,no
+gkb,Antonin Kinsky,Czech Republic,GK,23,15,15,5,30000,no
+gkc,Brandon Austin,England,GK,27,5,5,3,15000,yes
+lcba,Micky van de Ven,Netherlands,LCB,25,70,70,3,90000,no
+lcbb,Marcos Senesi,Argentina,LCB,29,50,50,4,100000,no
+rcba,Cristian Romero,Argentina,RCB,28,55,55,3,195000,no
+rcbb,Kevin Danso,Austria,RCB,27,25,25,4,65000,yes
+rcbc,Radu Dragusin,Romania,RCB,24,15,15,4,85000,no
+lba,Destiny Udogie,Italy,LB,23,35,35,4,75000,no
+lbb,Andy Robertson,Scotland,LB,32,20,20,2,180000,no
+lbc,Souza,Brazil,LB,19,15,15,5,25000,no
+rba,Pedro Porro,Spain,RB,26,45,45,5,180000,no
+rbb,Djed Spence,England,RB,25,35,35,3,40000,yes
+lcma,Rodrigo Bentancur,Uruguay,LCM,28,30,30,3,75000,no
+lcmb,Archie Gray,England,LCM,20,35,35,4,75000,no
+rcma,Conor Gallagher,England,RCM,26,40,40,5,160000,no
+rcmb,Pape Matar Sarr,Senegal,RCM,23,30,30,4,70000,no
+rcmc,Lucas Bergvall,Sweden,RCM,19,35,35,5,60000,no
+cama,James Maddison,England,CAM,29,35,35,2,170000,yes
+lwa,Mathys Tel,France,LW,21,30,30,5,55000,no
+sta,Dominic Solanke,England,ST,28,35,35,4,140000,yes
+stb,Richarlison,Brazil,ST,29,25,25,1,90000,no
