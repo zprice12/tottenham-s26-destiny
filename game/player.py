@@ -21,7 +21,6 @@ class Player:
     contract_years: int
     wages_per_week: int
     homegrown: bool
-    notes: str = ""
     origin: str = "squad"
     status: str = "squad"
     depth_pos: str = ""
@@ -51,12 +50,11 @@ class Player:
         hg = "HG" if self.homegrown else "N-HG"
         sale = fmt_m(self.sale_price_m) if self.sale_price_m else "-"
         buy = fmt_m(self.buy_price_m) if self.buy_price_m else "-"
-        notes = (self.notes[:28] + "…") if len(self.notes) > 29 else self.notes
         status = status_label or self.status
         return (
             f"{self.name:<22} {self.position:<4} {self.age:>2}  {self.nationality:<14} "
             f"{hg:<5} Sale {sale:>3}  Buy {buy:>3}  {fmt_pounds_weekly(self.wages_per_week):>12}  "
-            f"{self.contract_years:>2}yr  {status:<16} {notes}"
+            f"{self.contract_years:>2}yr  {status}"
         )
 
     def display_line(self) -> str:
@@ -83,7 +81,6 @@ def player_from_row(row: dict, origin: str, status: str) -> Player:
         contract_years=int(row["contract_years"]),
         wages_per_week=_wages_per_week_from_row(row),
         homegrown=row["homegrown"].strip().lower() in ("yes", "y", "true", "1"),
-        notes=row.get("notes", ""),
         origin=origin,
         status=status,
     )

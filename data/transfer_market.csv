@@ -1,16 +1,16 @@
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
-gyokeres-1,Viktor Gyokeres,Sweden,ST,27,0,70,5,115385,no,Prolific striker target
-kudus-2,Mohammed Kudus,Ghana,RW,25,0,50,5,96154,no,Creative winger
-palhinha-3,Joao Palhinha,Portugal,LCM,30,0,55,4,105769,no,Defensive midfielder
-gvardiol-4,Josko Gvardiol,Croatia,LCB,24,0,75,5,125000,no,World class left sided CB
-mitoma-5,Kaoru Mitoma,Japan,LW,28,0,60,4,96154,no,Pacy wide forward
-ederson-6,Ederson,Morocco,GK,26,0,30,5,57692,no,Young keeper
-zubimendi-7,Martin Zubimendi,Spain,LCM,26,0,60,5,96154,no,Deep lying playmaker
-osimhen-8,Victor Osimhen,Nigeria,ST,27,0,80,5,153846,no,Elite centre forward
-frimpong-9,Jeremie Frimpong,Netherlands,RB,24,0,45,5,86538,no,Attacking right back
-guehi-10,Marc Guehi,England,LCB,25,0,40,5,76923,yes,England international CB
-savinho-11,Savio,Brazil,LW,21,0,35,5,67308,no,Tricky Brazilian winger
-tonali-12,Sandro Tonali,Italy,RCM,25,0,50,5,105769,no,Box to box midfielder
-diouf-13,El Hadji Malick Diouf,Senegal,LB,21,0,25,5,48077,no,Young left back
-flekken-14,Mark Flekken,Netherlands,GK,32,0,15,3,57692,no,Experienced keeper
-brooks-15,Antoine Semenyo,Ghana,ST,25,0,35,4,67308,no,Physical forward
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
+gyokeres-1,Viktor Gyokeres,Sweden,ST,27,0,70,5,115385,no
+kudus-2,Mohammed Kudus,Ghana,RW,25,0,50,5,96154,no
+palhinha-3,Joao Palhinha,Portugal,LCM,30,0,55,4,105769,no
+gvardiol-4,Josko Gvardiol,Croatia,LCB,24,0,75,5,125000,no
+mitoma-5,Kaoru Mitoma,Japan,LW,28,0,60,4,96154,no
+ederson-6,Ederson,Morocco,GK,26,0,30,5,57692,no
+zubimendi-7,Martin Zubimendi,Spain,LCM,26,0,60,5,96154,no
+osimhen-8,Victor Osimhen,Nigeria,ST,27,0,80,5,153846,no
+frimpong-9,Jeremie Frimpong,Netherlands,RB,24,0,45,5,86538,no
+guehi-10,Marc Guehi,England,LCB,25,0,40,5,76923,yes
+savinho-11,Savio,Brazil,LW,21,0,35,5,67308,no
+tonali-12,Sandro Tonali,Italy,RCM,25,0,50,5,105769,no
+diouf-13,El Hadji Malick Diouf,Senegal,LB,21,0,25,5,48077,no
+flekken-14,Mark Flekken,Netherlands,GK,32,0,15,3,57692,no
+brooks-15,Antoine Semenyo,Ghana,ST,25,0,35,4,67308,no

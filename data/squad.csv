@@ -1,19 +1,19 @@
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
-vicario-1,Guglielmo Vicario,Italy,GK,29,25,25,3,67308,no,First choice keeper
-forster-2,Fraser Forster,England,GK,37,1,1,1,23077,yes,Backup keeper
-austin-3,Brandon Austin,England,GK,26,0.5,0.5,2,7692,yes,Third choice
-romero-4,Cristian Romero,Argentina,LCB,27,65,65,4,105769,no,Club captain
-van-de-ven-5,Micky van de Ven,Netherlands,LCB,24,50,50,5,76923,no,Key defender
-dragusin-6,Radu Dragusin,Romania,RCB,23,20,20,4,48077,no,Young CB
-spence-7,Djed Spence,England,LB,25,12,12,3,38462,yes,Left back option
-porro-8,Pedro Porro,Spain,RB,26,35,35,4,67308,no,Attacking fullback
-bissouma-9,Yves Bissouma,Mali,LCM,29,25,25,3,76923,no,Defensive mid
-sarr-10,Pape Matar Sarr,Senegal,RCM,23,30,30,4,57692,no,Box to box
-johnson-11,Brennan Johnson,Wales,RW,24,45,45,4,86538,no,Wide forward
-son-12,Heung-min Son,South Korea,LW,33,20,20,2,192308,no,Club legend winger
-solomon-13,Manor Solomon,Israel,LW,26,15,15,3,57692,no,Loan ended kept
-richarlison-14,Richarlison,Brazil,ST,28,30,30,3,105769,no,Striker
-scarlett-15,Dane Scarlett,England,ST,21,8,8,3,15385,yes,Homegrown striker
-davies-16,Ben Davies,Wales,LCB,32,3,3,1,48077,yes,Veteran cover
-gray-17,Archie Gray,England,CAM,19,25,25,5,28846,yes,Young midfielder
-bergvall-18,Lucas Bergvall,Sweden,CAM,19,30,30,5,23077,no,Teenage talent
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
+vicario-1,Guglielmo Vicario,Italy,GK,29,25,25,3,67308,no
+forster-2,Fraser Forster,England,GK,37,1,1,1,23077,yes
+austin-3,Brandon Austin,England,GK,26,0.5,0.5,2,7692,yes
+romero-4,Cristian Romero,Argentina,LCB,27,65,65,4,105769,no
+van-de-ven-5,Micky van de Ven,Netherlands,LCB,24,50,50,5,76923,no
+dragusin-6,Radu Dragusin,Romania,RCB,23,20,20,4,48077,no
+spence-7,Djed Spence,England,LB,25,12,12,3,38462,yes
+porro-8,Pedro Porro,Spain,RB,26,35,35,4,67308,no
+bissouma-9,Yves Bissouma,Mali,LCM,29,25,25,3,76923,no
+sarr-10,Pape Matar Sarr,Senegal,RCM,23,30,30,4,57692,no
+johnson-11,Brennan Johnson,Wales,RW,24,45,45,4,86538,no
+son-12,Heung-min Son,South Korea,LW,33,20,20,2,192308,no
+solomon-13,Manor Solomon,Israel,LW,26,15,15,3,57692,no
+richarlison-14,Richarlison,Brazil,ST,28,30,30,3,105769,no
+scarlett-15,Dane Scarlett,England,ST,21,8,8,3,15385,yes
+davies-16,Ben Davies,Wales,LCB,32,3,3,1,48077,yes
+gray-17,Archie Gray,England,CAM,19,25,25,5,28846,yes
+bergvall-18,Lucas Bergvall,Sweden,CAM,19,30,30,5,23077,no

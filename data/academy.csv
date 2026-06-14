@@ -1,7 +1,7 @@
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
-devine-1,Riley Devaney,England,CM,18,1,1,3,1923,yes,U18 captain
-peters-2,Ashley Phillips,England,LCB,20,5,5,3,5769,yes,Loaned to Championship
-danso-3,Yago Santiago,Spain,ST,17,2,2,3,1923,no,Academy striker
-williams-4,Mikey Moore,England,LW,17,8,8,3,3846,yes,Breakthrough prospect
-hall-5,Alejo Veliz,Argentina,ST,21,6,6,3,9615,no,Development striker
-tyson-6,Will Lankshear,England,ST,20,3,3,2,3846,yes,Tall target man
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
+devine-1,Riley Devaney,England,CM,18,1,1,3,1923,yes
+peters-2,Ashley Phillips,England,LCB,20,5,5,3,5769,yes
+danso-3,Yago Santiago,Spain,ST,17,2,2,3,1923,no
+williams-4,Mikey Moore,England,LW,17,8,8,3,3846,yes
+hall-5,Alejo Veliz,Argentina,ST,21,6,6,3,9615,no
+tyson-6,Will Lankshear,England,ST,20,3,3,2,3846,yes

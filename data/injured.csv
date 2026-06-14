@@ -1,5 +1,5 @@
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
-kulusevski-1,Dejan Kulusevski,Sweden,RW,25,50,50,3,96154,no,Long term knee injury
-udogie-2,Destiny Udogie,Italy,LB,23,40,40,4,67308,no,Hamstring - out since March
-bentancur-3,Rodrigo Bentancur,Uruguay,CM,28,20,20,2,86538,no,ACL recovery
-solanke-4,Dominic Solanke,England,ST,28,35,35,4,76923,yes,Ankle fracture
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
+kulusevski-1,Dejan Kulusevski,Sweden,RW,25,50,50,3,96154,no
+udogie-2,Destiny Udogie,Italy,LB,23,40,40,4,67308,no
+bentancur-3,Rodrigo Bentancur,Uruguay,CM,28,20,20,2,86538,no
+solanke-4,Dominic Solanke,England,ST,28,35,35,4,76923,yes

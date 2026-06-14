@@ -242,7 +242,7 @@ Open the CSV files in `data/` with Excel, Google Sheets, or any spreadsheet app:
 **CSV columns:**
 
 ```
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
 ```
 
 - `id` — unique ID like `son-12` (no spaces)

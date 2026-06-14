@@ -338,7 +338,7 @@ def render_player_directory(title: str, rows: list[tuple[Player, str]]) -> None:
         "  "
         f"{'Name':<22} {'Pos':<4} {'Age':>3}  {'Nationality':<14} "
         f"{'HG':<5} {'Sale':>6}  {'Buy':>6}  {'Wages':>12}  "
-        f"{'Ctr':>4}  {'Status':<16} Notes"
+        f"{'Ctr':>4}  {'Status':<16}"
     )
     print("  " + "-" * 118)
     if not rows:

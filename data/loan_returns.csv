@@ -1,4 +1,4 @@
-id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown,notes
-gil-1,Bryan Gil,Spain,LW,24,12,12,2,48077,no,Returning from Girona loan
-phillips-2,Rodrigo Bentancur,Uruguay,CM,28,20,20,2,86538,no,Returning from injury rehab loan
-harvey-3,Harvey White,England,CM,23,2,2,1,11538,yes,Returning from League One loan
+id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
+gil-1,Bryan Gil,Spain,LW,24,12,12,2,48077,no
+phillips-2,Rodrigo Bentancur,Uruguay,CM,28,20,20,2,86538,no
+harvey-3,Harvey White,England,CM,23,2,2,1,11538,yes
