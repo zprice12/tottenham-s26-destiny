@@ -1,9 +1,11 @@
 {
   "starting_budget_m": 100,
   "loan_wage_savings_m": 2,
+  "academy_loan_wage_savings_m": 1,
   "max_squad_size": 25,
   "max_non_homegrown": 17,
   "max_tottenham_sales": 8,
+  "roster_u21_exempt_age": 21,
   "budget_warning_only": true,
   "slots_per_position": 3,
   "roberto_typing_delay": 0.03,

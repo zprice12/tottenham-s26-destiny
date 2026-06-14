@@ -165,10 +165,12 @@ python main.py
 
 Roberto de Zerbi will greet you and explain the rules (you can skip the intro after 5 seconds). Then you'll see:
 
+- **Header:** Triple Spurs logo, then budget, on-squad count, non-homegrown count, sales used, annual wage bill, and any issues that still need resolving
 - **Centre:** A 4-3-3 pitch with 3 player slots per position (`a` = starter, `b` = backup, `c` = third choice)
 - **Left panel:** Injured → Loan returns → Academy
 - **Right panel:** Sold → Loaned out, with Roberto standing below
-- **Header:** Budget, squad size, non-homegrown count, sales used, wage bill, and any issues that still need resolving
+
+Progress **auto-saves after every move**. Use **E** to return to the main menu anytime.
 
 ### Commands
 
@@ -184,8 +186,9 @@ Roberto de Zerbi will greet you and explain the rules (you can skip the intro af
 
 When you pick a player, you'll see context-specific options — for example:
 
-- **On the pitch:** Move to another position, return to sidebar (if from injured/loan/academy), sell, or loan out
-- **Injured / loan return / academy:** Place on pitch, sell, or loan out
+- **On the pitch:** Move to another position, sell, or loan out. Return to sidebar only if they came from injured/loan return/academy (not first-team squad)
+- **Injured:** Place on pitch only (cannot sell or loan — they're coming back fit!)
+- **Loan return / academy:** Place on pitch, sell, or loan out
 - **Sold:** Place on pitch (buy back)
 - **Loaned out:** Place on pitch (recall)
 
@@ -193,19 +196,24 @@ To place someone on the pitch, pick a **position number** (1 = GK, 2 = RB, … 1
 
 ### Roberto Reactions
 
-After successful moves, Roberto may pop up (~20% chance) with a short comment — after the confirmation message, not before. Different quips play for lineup changes (promotions, demotions, new signings, etc.), sales, and loans.
+After successful moves, Roberto may pop up (~30% chance) with a short comment — after the confirmation message, not before. Different quips play for lineup changes (promotions, demotions, new signings, etc.), sales, and loans.
+
+### Budget & wages
+
+- **Budget** starts at 100M. Selling squad or academy players adds their sale fee. Buying from the market costs the buy price; buying back a sold player costs their sale fee. Loaning a player out adds **+2M** to budget (+1M for academy players).
+- **Wages** in the header are the annual total (`M/yr`) for everyone on the wage bill: players on the pitch, injured, loan returns, and academy (weekly wage × 52, summed). Sold and loaned-out players are off the books.
 
 ### Rules
 
-- **Starting budget:** 100M (editable in `config.json`)
-- **Max squad size:** 25 players
-- **Max non-homegrown:** 17 players
-- **Max sales from current squad/injured:** 8 players
+- **Max on-squad (pitch):** 25 players counting toward the limit — only players **on the pitch** age 21+ count. Under-21s on the pitch are exempt. Injured, academy, and loan returns in the sidebars do not count until placed on the pitch.
+- **Max non-homegrown:** 17 on the pitch (under-21 non-homegrown on the pitch are also exempt)
+- **Max sales from current squad:** 8 first-team players (squad origin only)
 - **Loan returns:** Sell as many as you want — doesn't count toward the 8
-- **Buy back:** Re-sign a sold Tottenham player — doesn't use a permanent sale slot
-- **Loan out:** Saves wages per player (see `loan_wage_savings_m` in `config.json`)
-- You can go over budget or squad limits while playing — warnings show in the header — but you can't **Finish** until everything is resolved
-- All **injured** and **loan return** players must be sold, loaned, or placed on the pitch before finishing
+- **Academy:** Optional — you don't have to place academy players to finish
+- **Buy back:** Re-sign a sold Tottenham player — doesn't use a permanent sale slot; costs their sale fee
+- You can go over budget or roster limits while playing — warnings show in the header — but you can't **Finish** until everything is resolved
+- All **injured** players must be placed on the pitch before finishing (cannot sell or loan them)
+- All **loan return** players must be sold, loaned, or placed on the pitch before finishing
 
 ### Position Key
 
@@ -245,7 +253,7 @@ Open the CSV files in `data/` with Excel, Google Sheets, or any spreadsheet app:
 id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
 ```
 
-- `id` — unique ID like `son-12` (no spaces)
+- `id` — unique ID; in `squad.csv` encodes starting slot (e.g. `gka` = GK slot a, `rcbb` = RCB slot b)
 - `position` — GK, LB, LCB, RCB, RB, LCM, CAM, RCM, LW, ST, RW
 - `homegrown` — `yes` or `no`
 - `sale_price_m` / `buy_price_m` — millions of pounds (whole numbers in-game display)
@@ -259,7 +267,9 @@ Open `config.json` in any text editor (Notepad, TextEdit, VS Code):
 {
   "starting_budget_m": 100,
   "loan_wage_savings_m": 2,
+  "academy_loan_wage_savings_m": 1,
   "max_squad_size": 25,
+  "roster_u21_exempt_age": 21,
   "max_non_homegrown": 17,
   "max_tottenham_sales": 8
 }
@@ -351,9 +361,9 @@ python main.py
 3. Watch Roberto explain the rules (or skip after 5 seconds)
 4. You're in! Try these to verify things work:
    - **P** → pick a player → sell someone → check budget goes up in the header
-   - **I** → view player info → scan the homegrown column
+   - **I** → view player info → scan wages and homegrown status
    - **B** → buy from the transfer market
-   - **E** → return to main menu
+   - **E** → return to main menu (progress saved)
 
 ### 5. Second launch (saved squads exist)
 
@@ -366,13 +376,23 @@ python main.py
 ### 6. Test finishing a squad
 
 To get the final screenshot summary you must:
+- Resolve all **injured** players (left panel) — place on pitch only
 - Resolve all **loan returns** (left panel) — sell, loan, or place on pitch
-- Resolve all **injured** players (left panel)
-- Stay within budget, 25 players, and 17 non-homegrown
+- Stay within budget, 25 on-pitch players (counting toward limit), and 17 non-homegrown on pitch
 
 Then press **F** to finish. You'll get the celebration screen, then return to the main menu with the squad marked **Complete**. You can still pick **1** to edit it again.
 
-### 7. Where saves live
+### 7. Run automated logic tests (optional)
+
+Developers and curious players can run the full test suite:
+
+```bash
+python3 tests/test_game_logic.py
+```
+
+This checks budget, wages, roster limits, duplicates, save/load, and more — no manual play required.
+
+### 8. Where saves live
 
 Your squads are stored as JSON files in `data/saves/` — one file per named build.
 
@@ -396,6 +416,8 @@ tottenham-s26-destiny/
 │   ├── academy.csv
 │   ├── transfer_market.csv
 │   └── saves/           ← Your saved squad builds (auto-created)
+├── tests/
+│   └── test_game_logic.py  ← Automated game logic tests
 └── game/                ← Game code (don't need to touch this)
 ```
 

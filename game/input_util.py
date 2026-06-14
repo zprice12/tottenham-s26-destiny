@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import os
 import sys
 import time
@@ -85,26 +86,29 @@ def offer_skip_countdown(seconds: int = 5) -> bool:
 
     print()
     print("  Roberto de Zerbi is about to explain the rules...")
-    print(f"  Press ENTER or S to skip  |  starting in {seconds}...")
     print()
 
     deadline = time.monotonic() + seconds
-    last_tick = seconds + 1
+    last_tick = -1
 
     while True:
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            print(f"  Starting intro...{' ' * 20}")
+            print("\r  Starting intro..." + " " * 40)
             print()
             return False
 
-        tick = int(remaining) + 1
+        tick = max(1, math.ceil(remaining))
         if tick != last_tick:
             last_tick = tick
-            print(f"\r  Press ENTER or S to skip  |  starting in {tick}...   ", end="", flush=True)
+            print(
+                f"\r  Press ENTER or S to skip  |  starting in {tick}...   ",
+                end="",
+                flush=True,
+            )
 
         key = read_key_wait(0.1)
         if key in SKIP_KEYS:
-            print("\r  Intro skipped." + " " * 30)
+            print("\r  Intro skipped." + " " * 40)
             print()
             return True

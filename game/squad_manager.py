@@ -9,9 +9,11 @@ from game.data_loader import (
     players_to_state,
 )
 from game.formatting import fmt_m
+from game.player import Player, WEEKS_PER_YEAR
 from game.team_saves import load_team, save_team
 
 ROSTER_STATUSES = ("depth_chart", "injured", "loan_return", "academy")
+WAGE_BILL_STATUSES = ("depth_chart", "injured", "loan_return", "academy")
 SIDEBAR_ORIGINS = ("injured", "loan_return", "academy")
 
 
@@ -83,9 +85,20 @@ class SquadManager:
                 if not placed:
                     p.status = "depth_chart"
 
+    def _validate_depth_chart(self) -> None:
+        seen: set[str] = set()
+        for slots in self.depth_chart.values():
+            for pid in slots:
+                if not pid:
+                    continue
+                if pid in seen:
+                    raise RuntimeError(f"Duplicate player on depth chart: {pid}")
+                seen.add(pid)
+
     def save(self, mark_completed: bool | None = None):
         if mark_completed is not None:
             self.completed = mark_completed
+        self._validate_depth_chart()
         save_team(
             self.team_slug,
             {
@@ -118,11 +131,45 @@ class SquadManager:
                     return True
         return False
 
+    def _parse_depth_slot_id(self, player_id: str) -> tuple[str, int] | None:
+        """
+        Parse squad CSV ids like gka, rcbb, lcma into (position_key, slot_index).
+        Format: lowercase position code + slot letter a/b/c.
+        """
+        pid = player_id.strip().lower()
+        if len(pid) < 2 or pid[-1] not in "abc":
+            return None
+        slot = {"a": 0, "b": 1, "c": 2}[pid[-1]]
+        pos_part = pid[:-1]
+        valid_keys = [pos["key"] for pos in self.config["formation"]]
+        for key in sorted(valid_keys, key=len, reverse=True):
+            if pos_part == key.lower():
+                return key, slot
+        return None
+
     def _auto_assign_initial_squad(self):
-        squad = [p for p in self.players.values() if p.status == "squad"]
-        for p in sorted(squad, key=lambda x: x.name):
-            if not self._place_in_empty_slot(p):
-                break
+        """Place squad players using their CSV id slot codes (gka, rcbb, etc.)."""
+        squad = [p for p in self.players.values() if p.origin == "squad" and p.status == "squad"]
+
+        def _slot_sort_key(player: Player) -> tuple[int, int, str]:
+            parsed = self._parse_depth_slot_id(player.id)
+            if not parsed:
+                return (999, 999, player.id)
+            pos_key, slot = parsed
+            order = next(
+                (pos["order"] for pos in self.config["formation"] if pos["key"] == pos_key),
+                999,
+            )
+            return (order, slot, player.id)
+
+        for p in sorted(squad, key=_slot_sort_key):
+            parsed = self._parse_depth_slot_id(p.id)
+            if parsed:
+                pos_key, slot = parsed
+                if pos_key in self.depth_chart and self.depth_chart[pos_key][slot] is None:
+                    self._assign_to_chart(p.id, pos_key, slot)
+                    continue
+            self._place_in_empty_slot(p)
 
     def _sidebar_status_for_origin(self, origin: str) -> str:
         if origin in SIDEBAR_ORIGINS:
@@ -194,23 +241,68 @@ class SquadManager:
             key=lambda x: x.name,
         )
 
-    def roster_count(self) -> int:
-        return sum(1 for p in self.players.values() if p.status in ROSTER_STATUSES)
+    def _roster_age_cutoff(self) -> int:
+        return self.config.get("roster_u21_exempt_age", 21)
 
-    def non_homegrown_count(self) -> int:
-        return sum(
-            1 for p in self.players.values()
-            if p.status in ROSTER_STATUSES and not p.homegrown
+    def _on_current_squad(self, player: Player) -> bool:
+        """Player has been placed on the pitch (counts toward squad limits)."""
+        return player.status == "depth_chart"
+
+    def counts_toward_roster_limit(self, player: Player) -> bool:
+        """On-squad players aged 21+ count toward the 25-man limit."""
+        return (
+            self._on_current_squad(player)
+            and player.age >= self._roster_age_cutoff()
         )
 
+    def counts_toward_non_hg_limit(self, player: Player) -> bool:
+        """On-squad non-homegrown players aged 21+ count toward the 17 limit."""
+        return (
+            self._on_current_squad(player)
+            and not player.homegrown
+            and player.age >= self._roster_age_cutoff()
+        )
+
+    def roster_count(self) -> int:
+        """On-squad players counting toward the 25-man limit (U21 exempt)."""
+        return sum(1 for p in self.players.values() if self.counts_toward_roster_limit(p))
+
+    def squad_players_on_pitch(self) -> int:
+        return len(self.get_on_pitch())
+
+    def u21_exempt_count(self) -> int:
+        """On-squad under-21 players (exempt from roster and non-HG limits)."""
+        cutoff = self._roster_age_cutoff()
+        return sum(
+            1 for p in self.players.values()
+            if self._on_current_squad(p) and p.age < cutoff
+        )
+
+    def u21_non_hg_exempt_count(self) -> int:
+        cutoff = self._roster_age_cutoff()
+        return sum(
+            1 for p in self.players.values()
+            if self._on_current_squad(p) and p.age < cutoff and not p.homegrown
+        )
+
+    def non_homegrown_count(self) -> int:
+        return sum(1 for p in self.players.values() if self.counts_toward_non_hg_limit(p))
+
+    def players_on_wage_bill(self) -> list[Player]:
+        """Injured, academy, loan returns, and squad players on the pitch."""
+        return [p for p in self.players.values() if p.status in WAGE_BILL_STATUSES]
+
+    def annual_wage_bill_pounds(self) -> int:
+        return sum(p.wages_per_week * WEEKS_PER_YEAR for p in self.players_on_wage_bill())
+
     def total_wages_m(self) -> float:
-        return sum(p.annual_wage_m for p in self.get_on_pitch())
+        return self.annual_wage_bill_pounds() / 1_000_000
 
     def total_wages_m_rounded(self) -> int:
         return int(self.total_wages_m() + 0.5)
 
     def _counts_toward_sales_limit(self, player: Player) -> bool:
-        return player.origin in ("squad", "injured")
+        return player.origin == "squad"
 
     def slot_occupied(self, pos_key: str, slot: int, excluding: str | None = None) -> bool:
         pid = self.depth_chart.get(pos_key, [None])[slot]
@@ -235,6 +327,8 @@ class SquadManager:
         ]
 
     def can_sell(self, player: Player) -> tuple[bool, str]:
+        if player.status == "injured":
+            return False, "Injured players must be placed on the pitch — they cannot be sold."
         if player.status not in ROSTER_STATUSES:
             return False, "That player cannot be sold."
         if self._counts_toward_sales_limit(player):
@@ -262,10 +356,17 @@ class SquadManager:
         self.save()
         return True, f"Sold {p.name} for {fmt_m(p.sale_price_m)}."
 
+    def _loan_budget_credit_m(self, player: Player) -> float:
+        if player.origin == "academy":
+            return self.config.get("academy_loan_wage_savings_m", 1)
+        return self.config["loan_wage_savings_m"]
+
     def loan_out(self, player_id: str) -> tuple[bool, str]:
         p = self.players.get(player_id)
         if not p:
             return False, "Player not found."
+        if p.status == "injured":
+            return False, "Injured players must be placed on the pitch — they cannot be loaned out."
         if p.status not in ROSTER_STATUSES:
             return False, "That player cannot be loaned out."
 
@@ -275,9 +376,12 @@ class SquadManager:
             p.depth_slot = -1
 
         p.status = "loaned_out"
+        credit = self._loan_budget_credit_m(p)
+        self.budget_m += credit
         self.save()
-        savings = self.config["loan_wage_savings_m"]
-        return True, f"Loaned out {p.name}. Wage savings: {fmt_m(savings)}/yr."
+        return True, (
+            f"Loaned out {p.name}. +{fmt_m(credit)} added to budget. Wages off the books."
+        )
 
     def assign_to_chart(self, player_id: str, pos_key: str, slot: int) -> tuple[bool, str]:
         p = self.players.get(player_id)
@@ -330,13 +434,18 @@ class SquadManager:
             warnings.append(f"OVER BUDGET — {fmt_m(self.budget_m)} remaining (sell players or undo buys)")
         if self.roster_count() > self.config["max_squad_size"]:
             max_sz = self.config["max_squad_size"]
+            u21 = self.u21_exempt_count()
+            extra = f" ({u21} U21 exempt)" if u21 else ""
             warnings.append(
-                f"OVER ROSTER — {self.roster_count()} players (max {max_sz}); sell or loan someone out"
+                f"OVER ROSTER — {self.roster_count()}/{max_sz} counting toward limit{extra}; "
+                "sell or loan someone out"
             )
         if self.non_homegrown_count() > self.config["max_non_homegrown"]:
             max_nhg = self.config["max_non_homegrown"]
+            u21_nhg = self.u21_non_hg_exempt_count()
+            extra = f" ({u21_nhg} U21 exempt)" if u21_nhg else ""
             warnings.append(
-                f"OVER NON-HOMEGROWN — {self.non_homegrown_count()} players (max {max_nhg})"
+                f"OVER NON-HOMEGROWN — {self.non_homegrown_count()}/{max_nhg} on squad{extra}"
             )
         n_lr = len(self.get_loan_returns())
         if n_lr:
@@ -346,7 +455,7 @@ class SquadManager:
         n_inj = len(self.get_injured())
         if n_inj:
             warnings.append(
-                f"{n_inj} INJURED PLAYER{'S' if n_inj != 1 else ''} — place on pitch, sell, or loan out"
+                f"{n_inj} INJURED PLAYER{'S' if n_inj != 1 else ''} — place on pitch (cannot sell or loan)"
             )
         return warnings
 
@@ -355,13 +464,20 @@ class SquadManager:
         if self.budget_m < 0:
             issues.append("Budget is negative. Sell players or undo buys.")
         if self.roster_count() > self.config["max_squad_size"]:
-            issues.append(f"Roster has {self.roster_count()} players (max 25).")
+            u21 = self.u21_exempt_count()
+            extra = f" ({u21} under-21 exempt)" if u21 else ""
+            issues.append(
+                f"Roster has {self.roster_count()} players counting toward the limit "
+                f"(max 25){extra}."
+            )
         if self.non_homegrown_count() > self.config["max_non_homegrown"]:
-            issues.append(f"Too many non-homegrown ({self.non_homegrown_count()}/17).")
+            issues.append(
+                f"Too many non-homegrown on squad ({self.non_homegrown_count()}/17 counting)."
+            )
         if self.get_loan_returns():
             issues.append("Resolve all loan returns (sell, loan, or place on pitch).")
         if self.get_injured():
-            issues.append("Resolve all injured players (sell, loan, or place on pitch).")
+            issues.append("Place all injured players on the pitch (they cannot be sold or loaned).")
         return len(issues) == 0, issues
 
     def get_manageable_players(self) -> list[dict]:

@@ -1,7 +1,8 @@
 id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
-devine-1,Riley Devaney,England,CM,18,1,1,3,1923,yes
-peters-2,Ashley Phillips,England,LCB,20,5,5,3,5769,yes
-danso-3,Yago Santiago,Spain,ST,17,2,2,3,1923,no
-williams-4,Mikey Moore,England,LW,17,8,8,3,3846,yes
-hall-5,Alejo Veliz,Argentina,ST,21,6,6,3,9615,no
-tyson-6,Will Lankshear,England,ST,20,3,3,2,3846,yes
+hardy-1,Malachi Hardy,England,RCB,18,3,3,1,2000,no
+byfield-2,Jun'Ai Byfield,England,RCB,17,3,3,1,2000,no
+rowswell-3,James Rowswell,England,LCB,19,3,3,3,2000,no
+olusesi-4,Callum Olusesi,England,RCM,19,3,3,3,2000,no
+williams-barnett-5,Luca Williams-Barnett,England,CAM,17,3,3,1,2000,no
+hall-6,Tye Hall,England,LCM,18,3,3,3,2000,no
+thompson-7,Tynan Thompson,England,LW,18,3,3,1,2000,no

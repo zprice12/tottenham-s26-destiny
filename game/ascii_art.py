@@ -56,6 +56,16 @@ def print_logo(indent: str = "  ") -> None:
         print(f"{indent}{line}")
 
 
+def print_triple_logo_row(separator: str = "       ") -> None:
+    """Print the Spurs logo three times on one row (for the in-game header)."""
+    if not LOGO_LINES:
+        return
+    col_w = max(len(line) for line in LOGO_LINES)
+    for line in LOGO_LINES:
+        cells = [line.ljust(col_w) for _ in range(3)]
+        print(separator.join(cells))
+
+
 def print_face(indent: str = "  ") -> None:
     for line in ROBERTO_FACE_LINES:
         print(f"{indent}{line}")

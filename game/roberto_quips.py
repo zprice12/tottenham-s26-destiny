@@ -237,7 +237,7 @@ QUIPS = {
     "loan": LOAN_QUIPS,
 }
 
-QUIP_CHANCE = 0.20
+QUIP_CHANCE = 0.30
 
 
 def classify_lineup_move(
