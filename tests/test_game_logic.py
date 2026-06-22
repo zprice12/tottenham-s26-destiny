@@ -10,6 +10,8 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from game.player import WEEKS_PER_YEAR
+from game.config import load_config
+from game.data_loader import load_fresh_players
 from game.squad_manager import SquadManager, WAGE_BILL_STATUSES
 
 PASS = 0
@@ -69,7 +71,7 @@ def test_initial_state():
     assert_true(mgr.tottenham_sales_count == 0, "sales count starts at 0")
     no_duplicates_on_pitch(mgr, "initial")
     assert_eq(mgr.depth_chart["GK"][0], "gka", "Vicario at GK-a via gka id")
-    assert_eq(len(mgr.get_on_pitch()), 22, "22 squad players on pitch from CSV")
+    assert_eq(len(mgr.get_on_pitch()), 20, "20 squad players on pitch from CSV")
     assert_eq(mgr.roster_count() + mgr.u21_exempt_count(), len(mgr.get_on_pitch()),
               "on-pitch equals counted + u21 exempt")
     assert_eq(mgr.annual_wage_bill_pounds(), manual_wage_bill(mgr), "wage bill matches manual")
@@ -487,6 +489,57 @@ def test_demote_within_position():
     no_duplicates_on_pitch(mgr, "after demote")
 
 
+def test_promote_swap():
+    print("\n=== Promote swaps with player above ===")
+    mgr = fresh()
+    sta = mgr.players["sta"]
+    stb = mgr.players["stb"]
+    assert_eq(sta.depth_slot, 0, "Solanke starts ST-a")
+    assert_eq(stb.depth_slot, 1, "Richarlison starts ST-b")
+    ok, _ = mgr.promote_on_chart(sta.id)
+    assert_true(not ok, "cannot promote from slot a")
+    ok, msg = mgr.promote_on_chart(stb.id)
+    assert_true(ok, f"promote Richarlison: {msg}")
+    assert_eq(mgr.depth_chart["ST"][0], stb.id, "Richarlison now ST-a")
+    assert_eq(mgr.depth_chart["ST"][1], sta.id, "Solanke now ST-b")
+    assert_eq(stb.depth_slot, 0, "Richarlison slot index")
+    assert_eq(sta.depth_slot, 1, "Solanke slot index")
+    no_duplicates_on_pitch(mgr, "after promote swap")
+
+
+def test_demote_swap():
+    print("\n=== Demote swaps with player below ===")
+    mgr = fresh()
+    sta = mgr.players["sta"]
+    stb = mgr.players["stb"]
+    ok, msg = mgr.demote_on_chart(sta.id)
+    assert_true(ok, f"demote Solanke: {msg}")
+    assert_eq(mgr.depth_chart["ST"][0], stb.id, "Richarlison now ST-a")
+    assert_eq(mgr.depth_chart["ST"][1], sta.id, "Solanke now ST-b")
+    ok, msg = mgr.demote_on_chart(sta.id)
+    assert_true(ok, f"demote Solanke again: {msg}")
+    assert_eq(mgr.depth_chart["ST"][2], sta.id, "Solanke now ST-c")
+    ok, _ = mgr.demote_on_chart(sta.id)
+    assert_true(not ok, "cannot demote from slot c")
+    no_duplicates_on_pitch(mgr, "after demote swap")
+
+
+def test_promote_into_empty_slot():
+    print("\n=== Promote into empty slot above ===")
+    mgr = fresh()
+    ok, _ = mgr.assign_to_chart("sta", "ST", 2)
+    assert_true(ok, "Solanke at ST-c alone")
+    assert_eq(mgr.depth_chart["ST"][0], None, "ST-a empty")
+    ok, _ = mgr.promote_on_chart("sta")
+    assert_true(ok, "promote into empty ST-b")
+    assert_eq(mgr.depth_chart["ST"][1], "sta", "Solanke at ST-b")
+    ok, _ = mgr.promote_on_chart("sta")
+    assert_true(ok, "promote into empty ST-a")
+    assert_eq(mgr.depth_chart["ST"][0], "sta", "Solanke at ST-a")
+    ok, _ = mgr.promote_on_chart("sta")
+    assert_true(not ok, "blocked at ST-a")
+
+
 def test_academy_sell_budget_no_sales_count():
     print("\n=== Academy sell adds budget, not sales count ===")
     mgr = fresh()
@@ -629,6 +682,55 @@ def test_academy_not_required_for_finish():
     assert_true(ok, f"can finish with academy unresolved (issues={issues})")
 
 
+def test_bissouma_option_pending_on_new_game():
+    print("\n=== Bissouma option pending on new game ===")
+    mgr = fresh()
+    assert_true(mgr.bissouma_option_pending, "new game waits for first move")
+    assert_true("bissouma-1" not in mgr.players, "Bissouma not on squad until kept")
+
+
+def test_add_bissouma():
+    print("\n=== Add Bissouma on option ===")
+    mgr = fresh()
+    ok, msg = mgr.add_bissouma()
+    assert_true(ok, f"add Bissouma: {msg}")
+    b = mgr.players["bissouma-1"]
+    assert_eq(b.name, "Yves Bissouma", "name")
+    assert_eq(b.position, "RCM", "position RCM")
+    assert_eq(b.contract_years, 1, "one year left")
+    assert_eq(b.wages_per_week, 60000, "60k wages")
+    assert_eq(b.sale_price_m, 0, "zero sale value")
+    assert_eq(b.buy_price_m, 0, "zero buy value")
+    on_pitch = b.id in depth_chart_ids(mgr)
+    in_sidebar = b.status == "loan_return"
+    assert_true(on_pitch or in_sidebar, "Bissouma on pitch or in sidebar when RCM full")
+    if on_pitch:
+        assert_eq(b.depth_pos, "RCM", "placed at RCM")
+    w0 = mgr.annual_wage_bill_pounds()
+    assert_true(w0 >= b.wages_per_week * WEEKS_PER_YEAR, "Bissouma on wage bill")
+
+
+def test_bissouma_option_persisted_in_save():
+    print("\n=== Bissouma option flag saved and loaded ===")
+    mgr = fresh()
+    mgr.bissouma_option_pending = False
+    mgr.save()
+    loaded = SquadManager.load_game(mgr.team_slug)
+    assert_true(loaded is not None, "load save")
+    assert_true(not loaded.bissouma_option_pending, "pending flag persisted as false")
+
+
+def test_transfer_market_positions_valid():
+    print("\n=== Transfer market positions match formation ===")
+    cfg = load_config()
+    valid = {p["key"] for p in cfg["formation"]}
+    players = load_fresh_players()
+    market = [p for p in players.values() if p.status == "market"]
+    assert_true(len(market) > 0, "transfer market has players")
+    bad = [(p.id, p.name, p.position) for p in market if p.position not in valid]
+    assert_true(not bad, f"invalid positions: {bad}")
+
+
 def main():
     print("Tottenham Squad Builder — logic tests")
     test_initial_state()
@@ -654,6 +756,9 @@ def main():
     test_every_player_single_status()
     test_resolve_all_loan_returns()
     test_demote_within_position()
+    test_promote_swap()
+    test_demote_swap()
+    test_promote_into_empty_slot()
     test_academy_sell_budget_no_sales_count()
     test_cannot_finish_initially()
     test_cannot_finish_over_budget()
@@ -664,6 +769,10 @@ def main():
     test_finish_after_buyback_and_recall()
     test_finish_starting_xi_populated()
     test_academy_not_required_for_finish()
+    test_bissouma_option_pending_on_new_game()
+    test_add_bissouma()
+    test_bissouma_option_persisted_in_save()
+    test_transfer_market_positions_valid()
     print(f"\n{'=' * 40}")
     print(f"Results: {PASS} passed, {FAIL} failed")
     return 1 if FAIL else 0

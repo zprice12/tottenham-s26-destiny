@@ -28,6 +28,7 @@ class SquadManager:
         self.team_slug: str = ""
         self.completed: bool = False
         self.created_at: str = ""
+        self.bissouma_option_pending: bool = False
         self._init_depth_chart()
 
     def _init_depth_chart(self):
@@ -41,6 +42,7 @@ class SquadManager:
         mgr.team_name = name
         mgr.team_slug = slug
         mgr.players = load_fresh_players()
+        mgr.bissouma_option_pending = True
         mgr._auto_assign_initial_squad()
         mgr.save()
         return mgr
@@ -59,6 +61,7 @@ class SquadManager:
         mgr.budget_m = state["budget_m"]
         mgr.tottenham_sales_count = state["tottenham_sales_count"]
         mgr.depth_chart = state["depth_chart"]
+        mgr.bissouma_option_pending = state.get("bissouma_option_pending", False)
         mgr._migrate_cm_to_cam()
         mgr._migrate_legacy_statuses()
         return mgr
@@ -109,6 +112,7 @@ class SquadManager:
                 "depth_chart": self.depth_chart,
                 "players": players_to_state(self.players),
                 "created_at": self.created_at,
+                "bissouma_option_pending": self.bissouma_option_pending,
             },
         )
 
@@ -428,6 +432,65 @@ class SquadManager:
             return False, "That slot is empty."
         return self._remove_from_chart(pid)
 
+    def promote_on_chart(self, player_id: str) -> tuple[bool, str]:
+        """Move player up the depth chart (toward slot a), swapping with occupant above."""
+        p = self.players.get(player_id)
+        if not p or p.status != "depth_chart":
+            return False, "Player is not on the pitch."
+        pos_key = p.depth_pos
+        slot = p.depth_slot
+        if slot <= 0:
+            return False, "Already at slot a — cannot promote further."
+        new_slot = slot - 1
+        letters = "abc"
+        other_id = self.depth_chart[pos_key][new_slot]
+        if other_id:
+            other = self.players[other_id]
+            self.depth_chart[pos_key][slot] = other_id
+            self.depth_chart[pos_key][new_slot] = player_id
+            other.depth_slot = slot
+            p.depth_slot = new_slot
+            self.save()
+            return True, (
+                f"Promoted {p.name} to {pos_key}-{letters[new_slot]} "
+                f"(swapped with {other.name})."
+            )
+        self.depth_chart[pos_key][slot] = None
+        self.depth_chart[pos_key][new_slot] = player_id
+        p.depth_slot = new_slot
+        self.save()
+        return True, f"Promoted {p.name} to {pos_key}-{letters[new_slot]}."
+
+    def demote_on_chart(self, player_id: str) -> tuple[bool, str]:
+        """Move player down the depth chart (toward slot c), swapping with occupant below."""
+        p = self.players.get(player_id)
+        if not p or p.status != "depth_chart":
+            return False, "Player is not on the pitch."
+        pos_key = p.depth_pos
+        slot = p.depth_slot
+        max_slot = self.config["slots_per_position"] - 1
+        if slot >= max_slot:
+            return False, "Already at slot c — cannot demote further."
+        new_slot = slot + 1
+        letters = "abc"
+        other_id = self.depth_chart[pos_key][new_slot]
+        if other_id:
+            other = self.players[other_id]
+            self.depth_chart[pos_key][slot] = other_id
+            self.depth_chart[pos_key][new_slot] = player_id
+            other.depth_slot = slot
+            p.depth_slot = new_slot
+            self.save()
+            return True, (
+                f"Demoted {p.name} to {pos_key}-{letters[new_slot]} "
+                f"(swapped with {other.name})."
+            )
+        self.depth_chart[pos_key][slot] = None
+        self.depth_chart[pos_key][new_slot] = player_id
+        p.depth_slot = new_slot
+        self.save()
+        return True, f"Demoted {p.name} to {pos_key}-{letters[new_slot]}."
+
     def get_warnings(self) -> list[str]:
         warnings = []
         if self.budget_m < 0:
@@ -479,6 +542,39 @@ class SquadManager:
         if self.get_injured():
             issues.append("Place all injured players on the pitch (they cannot be sold or loaned).")
         return len(issues) == 0, issues
+
+    def add_bissouma(self) -> tuple[bool, str]:
+        """Keep Yves Bissouma on his one-year contract option."""
+        if "bissouma-1" in self.players:
+            return False, "Bissouma is already on the squad."
+
+        p = Player(
+            id="bissouma-1",
+            name="Yves Bissouma",
+            nationality="Mali",
+            position="RCM",
+            age=29,
+            sale_price_m=0,
+            buy_price_m=0,
+            contract_years=1,
+            wages_per_week=60000,
+            homegrown=False,
+            origin="squad",
+            status="squad",
+        )
+        self.players[p.id] = p
+
+        for slot in range(self.config["slots_per_position"]):
+            if not self.depth_chart["RCM"][slot]:
+                return self.assign_to_chart(p.id, "RCM", slot)
+
+        p.status = "loan_return"
+        p.origin = "loan_return"
+        self.save()
+        return True, (
+            "Yves Bissouma kept on his one-year option (£60k/wk). "
+            "RCM is full — place him from the pick menu when you have a slot."
+        )
 
     def get_manageable_players(self) -> list[dict]:
         entries: list[dict] = []

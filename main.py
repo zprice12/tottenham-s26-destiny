@@ -9,12 +9,15 @@ from game import config as _cfg
 from game.ascii_art import print_logo
 from game.display import (
     clear_screen,
+    formation_position_keys,
     render_command_bar,
     render_final_summary,
+    render_grouped_player_picker,
     render_info_menu,
     render_intro,
     render_main_menu,
     render_main_view,
+    render_market_filter_bar,
     render_player_directory,
     render_player_picker,
     render_position_key,
@@ -47,6 +50,165 @@ def pick_index(prompt: str, count: int, allow_zero: bool = True) -> int | None:
         except ValueError:
             pass
         print(f"  Enter 0-{count}.")
+
+
+def resolve_position_filter(text: str, cfg: dict) -> str | None:
+    """Return position key to filter, empty string to clear, or None if not a filter."""
+    raw = text.strip().upper()
+    if raw in ("*", "ALL"):
+        return ""
+    valid = set(formation_position_keys(cfg))
+    if raw in valid:
+        return raw
+    return None
+
+
+def pick_from_columnized_picker(
+    title: str,
+    entries: list[dict],
+    cfg: dict,
+    *,
+    use_columns: bool = True,
+) -> Player | None:
+    """Pick a player by number; supports columns, pages, and position filters."""
+    if not entries:
+        print("  (none available)")
+        return None
+
+    position_filter = ""
+    page = 0
+    valid_positions = set(formation_position_keys(cfg))
+
+    def visible_entries() -> list[dict]:
+        if not position_filter:
+            return entries
+        return [e for e in entries if e["player"].position == position_filter]
+
+    while True:
+        visible = visible_entries()
+        clear_screen()
+        display_title = title
+        if position_filter:
+            display_title = f"{title} [{position_filter}]"
+        if not visible:
+            print(f"  {display_title}")
+            print("  " + "-" * 66)
+            print(f"  (no players at {position_filter})")
+            print()
+            render_market_filter_bar(cfg, position_filter)
+            print("  0 = cancel")
+            choice = input("  > ").strip()
+            if choice == "0":
+                return None
+            filt = resolve_position_filter(choice, cfg)
+            if filt is not None:
+                position_filter = filt
+                page = 0
+            continue
+
+        total_pages = render_player_picker(
+            display_title, visible, page=page, use_columns=use_columns
+        )
+        print()
+        if total_pages > 1:
+            print(f"  Page {page + 1} of {total_pages}")
+            nav = []
+            if page > 0:
+                nav.append("[P] Previous page")
+            if page < total_pages - 1:
+                nav.append("[N] Next page")
+            if nav:
+                print("  " + "   ".join(nav))
+            print()
+        render_market_filter_bar(cfg, position_filter)
+        print()
+        choice = input("  Player number (0 to cancel): ").strip()
+        if choice == "0":
+            return None
+        choice_lower = choice.lower()
+        if choice_lower == "n" and page < total_pages - 1:
+            page += 1
+            continue
+        if choice_lower == "p" and page > 0:
+            page -= 1
+            continue
+        filt = resolve_position_filter(choice, cfg)
+        if filt is not None:
+            position_filter = filt
+            page = 0
+            continue
+        try:
+            idx = int(choice)
+            if 1 <= idx <= len(visible):
+                return visible[idx - 1]["player"]
+        except ValueError:
+            pass
+        pos_hint = ", ".join(sorted(valid_positions))
+        print(f"  Enter 0-{len(visible)}, a position ({pos_hint}), * for all, or P/N for pages.")
+
+
+def browse_player_directory(title: str, rows: list[tuple[Player, str]], cfg: dict) -> None:
+    """Paginated read-only player table with position filtering."""
+    if not rows:
+        clear_screen()
+        render_player_directory(title, rows)
+        pause()
+        return
+
+    position_filter = ""
+    page = 0
+    total_pages = 1
+
+    while True:
+        visible = (
+            rows
+            if not position_filter
+            else [(p, status) for p, status in rows if p.position == position_filter]
+        )
+        clear_screen()
+        if not visible:
+            print(f"  {title} [{position_filter}]")
+            print("  (no players at this position)")
+            print()
+            render_market_filter_bar(cfg, position_filter)
+            print("  0 = back")
+            choice = input("  > ").strip()
+            if choice == "0":
+                return
+            filt = resolve_position_filter(choice, cfg)
+            if filt is not None:
+                position_filter = filt
+                page = 0
+            continue
+
+        total_pages = max(1, (len(visible) + 19) // 20)
+        page = max(0, min(page, total_pages - 1))
+        display_title = title
+        if position_filter:
+            display_title = f"{title} [{position_filter}]"
+        if total_pages > 1:
+            display_title = f"{display_title} — page {page + 1}/{total_pages}"
+        total_pages = render_player_directory(display_title, visible, page=page)
+        print()
+        if total_pages > 1:
+            print("  [N] Next   [P] Previous")
+        render_market_filter_bar(cfg, position_filter)
+        print("  0 = back")
+        choice = input("  > ").strip()
+        if choice == "0":
+            return
+        choice_lower = choice.lower()
+        if choice_lower == "n" and page < total_pages - 1:
+            page += 1
+            continue
+        if choice_lower == "p" and page > 0:
+            page -= 1
+            continue
+        filt = resolve_position_filter(choice, cfg)
+        if filt is not None:
+            position_filter = filt
+            page = 0
+            continue
 
 
 def prompt_squad_name() -> str | None:
@@ -119,6 +281,39 @@ def run_welcome_back(manager: SquadManager, cfg: dict) -> None:
     pause()
 
 
+def run_bissouma_option(manager: SquadManager, cfg: dict) -> None:
+    clear_screen()
+    say(
+        [
+            "One more thing before we carry on.",
+            "Yves Bissouma's contract expired — but we hold a one-year option.",
+            "Keep him? £60,000 per week. One year left. No transfer fee in or out.",
+        ],
+        cfg,
+        show_face=True,
+    )
+    while True:
+        choice = input("  Keep Bissouma for one more year? (y/n): ").strip().lower()
+        if choice in ("y", "yes"):
+            ok, msg = manager.add_bissouma()
+            say_quick(msg if ok else f"Could not keep Bissouma: {msg}")
+            pause()
+            return
+        if choice in ("n", "no"):
+            say_quick("Understood. We move on without Bissouma.")
+            pause()
+            return
+        print("  Enter y or n.")
+
+
+def _maybe_offer_bissouma_option(manager: SquadManager, cfg: dict) -> None:
+    if not manager.bissouma_option_pending:
+        return
+    manager.bissouma_option_pending = False
+    manager.save()
+    run_bissouma_option(manager, cfg)
+
+
 def _pick_position_order(manager: SquadManager) -> str | None:
     render_position_key(manager.config)
     pos_input = input("  Position number (0 to cancel): ").strip()
@@ -188,7 +383,11 @@ def _handle_occupant(manager: SquadManager, occupant: Player, cfg: dict) -> bool
         maybe_react("sell", cfg, player=occupant.name)
     elif ok and action == "loan":
         maybe_react("loan", cfg, player=occupant.name)
-    pause()
+    if ok:
+        pause()
+        _maybe_offer_bissouma_option(manager, cfg)
+    else:
+        pause()
     return ok
 
 
@@ -300,6 +499,7 @@ def _place_player(
                 position=pos_key,
             )
             pause()
+            _maybe_offer_bissouma_option(manager, cfg)
             return
         say_quick(f"Could not complete {retry_label}: {msg}")
         pause()
@@ -327,6 +527,10 @@ def _player_action_menu(manager: SquadManager, player: Player, cfg: dict) -> Non
         ])
     elif player.status == "depth_chart":
         options.append(("Move to position", "place"))
+        if player.depth_slot > 0:
+            options.append(("Promote (up depth chart)", "promote"))
+        if player.depth_slot < manager.config["slots_per_position"] - 1:
+            options.append(("Demote (down depth chart)", "demote"))
         if player.origin in ("injured", "loan_return", "academy"):
             options.append(("Return to sidebar", "return"))
         options.extend([
@@ -352,6 +556,10 @@ def _player_action_menu(manager: SquadManager, player: Player, cfg: dict) -> Non
     ok, msg = False, ""
     if action == "return":
         ok, msg = manager.remove_from_chart(player.depth_pos, player.depth_slot)
+    elif action == "promote":
+        ok, msg = manager.promote_on_chart(player.id)
+    elif action == "demote":
+        ok, msg = manager.demote_on_chart(player.id)
     elif action == "sell":
         ok, msg = manager.sell_player(player.id)
     elif action == "loan":
@@ -362,13 +570,31 @@ def _player_action_menu(manager: SquadManager, player: Player, cfg: dict) -> Non
         maybe_react("sell", cfg, player=player.name)
     elif ok and action == "loan":
         maybe_react("loan", cfg, player=player.name)
+    elif ok and action == "promote":
+        maybe_react(
+            "promote",
+            cfg,
+            player=player.name,
+            slot="abc"[player.depth_slot],
+            position=player.depth_pos,
+        )
+    elif ok and action == "demote":
+        maybe_react(
+            "demote",
+            cfg,
+            player=player.name,
+            slot="abc"[player.depth_slot],
+            position=player.depth_pos,
+        )
     pause()
+    if ok:
+        _maybe_offer_bissouma_option(manager, cfg)
 
 
 def cmd_pick_player(manager: SquadManager, cfg: dict) -> None:
     clear_screen()
     entries = manager.get_manageable_players()
-    render_player_picker("PICK A PLAYER", entries)
+    render_grouped_player_picker("PICK A PLAYER", entries)
     print()
     idx = pick_index("Player number", len(entries))
     if idx is None:
@@ -377,18 +603,20 @@ def cmd_pick_player(manager: SquadManager, cfg: dict) -> None:
 
 
 def cmd_buy_player(manager: SquadManager, cfg: dict) -> None:
-    clear_screen()
     market = manager.get_market()
     entries = [{"player": p, "label": f"buy {fmt_m(p.buy_price_m)}"} for p in market]
-    render_player_picker("TRANSFER MARKET — BUY A PLAYER", entries)
-    print()
-    idx = pick_index("Player number", len(entries))
-    if idx is None:
+    player = pick_from_columnized_picker(
+        "TRANSFER MARKET — BUY A PLAYER",
+        entries,
+        cfg,
+        use_columns=True,
+    )
+    if player is None:
         return
-    _place_player(manager, entries[idx]["player"], cfg)
+    _place_player(manager, player, cfg)
 
 
-def cmd_view_info(manager: SquadManager) -> None:
+def cmd_view_info(manager: SquadManager, cfg: dict) -> None:
     while True:
         clear_screen()
         render_info_menu()
@@ -403,14 +631,13 @@ def cmd_view_info(manager: SquadManager) -> None:
             )
             pause()
         elif choice == "2":
-            clear_screen()
             market = manager.get_market()
             rows = [(p, "For sale") for p in market]
-            render_player_directory(
+            browse_player_directory(
                 "TRANSFER MARKET — players available to buy",
                 rows,
+                cfg,
             )
-            pause()
         else:
             say_quick("Enter 0, 1, or 2.")
             pause()
@@ -446,7 +673,7 @@ def squad_session_loop(manager: SquadManager, cfg: dict, is_new: bool) -> None:
         elif choice in ("b", "buy"):
             cmd_buy_player(manager, cfg)
         elif choice in ("i", "info"):
-            cmd_view_info(manager)
+            cmd_view_info(manager, cfg)
         elif choice in ("f", "finish"):
             result = cmd_finish(manager, cfg)
             if result == "menu":

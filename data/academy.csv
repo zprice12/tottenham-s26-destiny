@@ -1,8 +1,8 @@
 id,name,nationality,position,age,sale_price_m,buy_price_m,contract_years,wages_per_week,homegrown
-hardy-1,Malachi Hardy,England,RCB,18,3,3,1,2000,no
-byfield-2,Jun'Ai Byfield,England,RCB,17,3,3,1,2000,no
-rowswell-3,James Rowswell,England,LCB,19,3,3,3,2000,no
-olusesi-4,Callum Olusesi,England,RCM,19,3,3,3,2000,no
-williams-barnett-5,Luca Williams-Barnett,England,CAM,17,3,3,1,2000,no
-hall-6,Tye Hall,England,LCM,18,3,3,3,2000,no
-thompson-7,Tynan Thompson,England,LW,18,3,3,1,2000,no
+hardy-1,Malachi Hardy,England,RCB,18,5,5,1,2000,no
+byfield-2,Jun'Ai Byfield,England,RCB,17,5,5,1,2000,no
+rowswell-3,James Rowswell,England,LCB,19,5,5,3,2000,no
+olusesi-4,Callum Olusesi,England,RCM,19,5,5,3,2000,no
+williams-barnett-5,Luca Williams-Barnett,England,CAM,17,5,5,1,2000,no
+hall-6,Tye Hall,England,LCM,18,5,5,3,2000,no
+thompson-7,Tynan Thompson,England,LW,18,5,5,1,2000,no

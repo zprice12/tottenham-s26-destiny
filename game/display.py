@@ -287,7 +287,7 @@ def render_header(manager: SquadManager) -> None:
     print(f"  Budget: {fmt_m(manager.budget_m)}")
     print(f"  {_roster_header_line(manager)}")
     print(f"  {_non_hg_header_line(manager)}          Sales: {manager.tottenham_sales_count}/{manager.config['max_tottenham_sales']}")
-    print(f"  Wages: {manager.total_wages_m_rounded()}M/yr")
+    print(f"  Wages: £{manager.total_wages_m_rounded()}M/yr")
     print()
     _render_warnings(manager.get_warnings())
     print()
@@ -356,23 +356,6 @@ def render_position_key(config: dict) -> None:
     print()
 
 
-def render_player_directory(title: str, rows: list[tuple[Player, str]]) -> None:
-    print(f"  {title}")
-    print("  " + "-" * 118)
-    print(
-        "  "
-        f"{'Name':<22} {'Pos':<4} {'Age':>3}  {'Nationality':<14} "
-        f"{'HG':<5} {'Sale':>6}  {'Buy':>6}  {'Wages':>12}  "
-        f"{'Ctr':>4}  {'Status':<16}"
-    )
-    print("  " + "-" * 118)
-    if not rows:
-        print("  (none)")
-        return
-    for player, status in rows:
-        print(f"  {player.info_line(status)}")
-
-
 def render_info_menu() -> None:
     print("  PLAYER INFO")
     print("  " + "-" * 40)
@@ -382,16 +365,186 @@ def render_info_menu() -> None:
     print()
 
 
-def render_player_picker(title: str, entries: list[dict]) -> None:
+PICKER_ROWS_PER_COLUMN = 20
+PICKER_MAX_COLUMNS = 4
+PICKER_COL_WIDTH = 35
+
+
+def formation_position_keys(config: dict) -> list[str]:
+    return [p["key"] for p in sorted(config["formation"], key=lambda x: x["order"])]
+
+
+def render_market_filter_bar(config: dict, active_filter: str = "") -> None:
+    keys = formation_position_keys(config)
+    filter_text = f" [{active_filter}]" if active_filter else ""
+    print(f"  Filter{filter_text}: type a position ({', '.join(keys)}) or * for all")
+
+
+def _picker_entry_line(number: int, entry: dict) -> str:
+    p = entry["player"]
+    label = entry.get("label", "")
+    line = f"{number:>2}. {p.short_name(15):<15} {p.position:<3} {label}"
+    return line[:PICKER_COL_WIDTH].ljust(PICKER_COL_WIDTH)
+
+
+def _picker_pages(entries: list[dict]) -> list[list[list[dict]]]:
+    """Pages of columns; each column holds up to PICKER_ROWS_PER_COLUMN entries."""
+    page_size = PICKER_ROWS_PER_COLUMN * PICKER_MAX_COLUMNS
+    pages: list[list[list[dict]]] = []
+    for page_start in range(0, len(entries), page_size):
+        page_slice = entries[page_start : page_start + page_size]
+        columns: list[list[dict]] = []
+        for col_start in range(0, len(page_slice), PICKER_ROWS_PER_COLUMN):
+            columns.append(page_slice[col_start : col_start + PICKER_ROWS_PER_COLUMN])
+        pages.append(columns)
+    return pages
+
+
+def render_player_picker(
+    title: str,
+    entries: list[dict],
+    *,
+    page: int = 0,
+    use_columns: bool = False,
+) -> int:
+    """Render a numbered player list. Returns total page count (always >= 1)."""
     print(f"  {title}")
-    print("  " + "-" * 66)
+    rule = "-" * min(140, PICKER_COL_WIDTH * PICKER_MAX_COLUMNS + (PICKER_MAX_COLUMNS - 1) * 2)
+    print(f"  {rule}")
+    if not entries:
+        print("  (none)")
+        return 1
+
+    if not use_columns or len(entries) <= PICKER_ROWS_PER_COLUMN:
+        for i, entry in enumerate(entries, 1):
+            print(f"  {_picker_entry_line(i, entry).strip()}")
+        return 1
+
+    pages = _picker_pages(entries)
+    page = max(0, min(page, len(pages) - 1))
+    columns = pages[page]
+    page_start = page * PICKER_ROWS_PER_COLUMN * PICKER_MAX_COLUMNS
+    num_rows = max(len(col) for col in columns)
+
+    for row in range(num_rows):
+        parts: list[str] = []
+        for col_idx, column in enumerate(columns):
+            if row < len(column):
+                global_num = page_start + col_idx * PICKER_ROWS_PER_COLUMN + row + 1
+                parts.append(_picker_entry_line(global_num, column[row]))
+            else:
+                parts.append(" " * PICKER_COL_WIDTH)
+        print("  " + "  ".join(parts))
+
+    return len(pages)
+
+
+GROUP_COL_WIDTH = 36
+GROUPS_PER_ROW = 3
+
+_MANAGEABLE_GROUPS: list[tuple[str, str]] = [
+    ("INJURED", "injured"),
+    ("LOAN RETURNS", "loan return"),
+    ("ACADEMY", "academy"),
+    ("ON PITCH", "pitch"),
+    ("SOLD", "sold"),
+    ("LOANED OUT", "loaned out"),
+]
+
+
+def _group_manageable_entries(
+    entries: list[dict],
+) -> list[tuple[str, list[tuple[int, dict]]]]:
+    numbered = list(enumerate(entries, 1))
+    groups: list[tuple[str, list[tuple[int, dict]]]] = []
+    for title, kind in _MANAGEABLE_GROUPS:
+        if kind == "pitch":
+            items = [(num, e) for num, e in numbered if e["label"].startswith("pitch ")]
+        elif kind == "sold":
+            items = [(num, e) for num, e in numbered if e["label"].startswith("sold —")]
+        elif kind == "loaned out":
+            items = [(num, e) for num, e in numbered if e["label"].startswith("loaned out")]
+        else:
+            items = [(num, e) for num, e in numbered if e["label"] == kind]
+        groups.append((title, items))
+    return groups
+
+
+def _grouped_entry_line(number: int, entry: dict) -> str:
+    p = entry["player"]
+    label = entry.get("label", "")
+    extra = ""
+    if label.startswith("pitch "):
+        extra = label.replace("pitch ", "")
+    elif label.startswith("sold —"):
+        extra = label.replace("sold — ", "")
+    line = f"{number:>2}. {p.short_name(13):<13} {p.position:<3}"
+    if extra:
+        line += f" {extra[:10]}"
+    return line[:GROUP_COL_WIDTH].ljust(GROUP_COL_WIDTH)
+
+
+def _render_group_column(title: str, items: list[tuple[int, dict]]) -> list[str]:
+    lines = [title.center(GROUP_COL_WIDTH)[:GROUP_COL_WIDTH].ljust(GROUP_COL_WIDTH)]
+    lines.append("-" * GROUP_COL_WIDTH)
+    if items:
+        for num, entry in items:
+            lines.append(_grouped_entry_line(num, entry))
+    else:
+        lines.append("(none)".center(GROUP_COL_WIDTH)[:GROUP_COL_WIDTH].ljust(GROUP_COL_WIDTH))
+    return lines
+
+
+def render_grouped_player_picker(title: str, entries: list[dict]) -> None:
+    """Render pick list in category columns (injured, loan returns, etc.)."""
+    print(f"  {title}")
+    rule = "-" * min(140, GROUP_COL_WIDTH * GROUPS_PER_ROW + (GROUPS_PER_ROW - 1) * 2)
+    print(f"  {rule}")
     if not entries:
         print("  (none)")
         return
-    for i, entry in enumerate(entries, 1):
-        p = entry["player"]
-        label = entry.get("label", "")
-        print(f"  {i:>2}. {p.name:<24} {label}")
+
+    groups = _group_manageable_entries(entries)
+    for row_start in range(0, len(groups), GROUPS_PER_ROW):
+        row_groups = groups[row_start : row_start + GROUPS_PER_ROW]
+        columns = [_render_group_column(title, items) for title, items in row_groups]
+        height = max(len(col) for col in columns)
+        for row in range(height):
+            parts = []
+            for col in columns:
+                parts.append(col[row] if row < len(col) else " " * GROUP_COL_WIDTH)
+            print("  " + "  ".join(parts))
+        print()
+
+
+def render_player_directory(
+    title: str,
+    rows: list[tuple[Player, str]],
+    *,
+    page: int = 0,
+    page_size: int = PICKER_ROWS_PER_COLUMN,
+) -> int:
+    """Render player table. Returns total page count (always >= 1)."""
+    print(f"  {title}")
+    print("  " + "-" * 118)
+    print(
+        "  "
+        f"{'Name':<22} {'Pos':<4} {'Age':>3}  {'Nationality':<14} "
+        f"{'HG':<5} {'Sale £M':>7}  {'Buy £M':>7}  {'Wages £/wk':>12}  "
+        f"{'Ctr':>4}  {'Status':<16}"
+    )
+    print("  " + "-" * 118)
+    if not rows:
+        print("  (none)")
+        return 1
+
+    total_pages = (len(rows) + page_size - 1) // page_size
+    page = max(0, min(page, total_pages - 1))
+    start = page * page_size
+    end = min(start + page_size, len(rows))
+    for player, status in rows[start:end]:
+        print(f"  {player.info_line(status)}")
+    return total_pages
 
 
 def render_final_summary(manager: SquadManager) -> None:
@@ -403,36 +556,23 @@ def render_final_summary(manager: SquadManager) -> None:
     print("  Roberto de Zerbi says:")
     print('  "Bravo! This is the squad we take into 2026/27. COYS!"')
     print()
-    print("  STARTING XI (4-3-3)")
-    print("  " + "-" * 50)
-
-    for pos in manager.config["formation"]:
-        pid = manager.depth_chart.get(pos["key"], [None, None, None])[0]
-        if pid and pid in manager.players:
-            p = manager.players[pid]
-            print(f"  {pos['key']:<4}  {p.name}")
-        else:
-            print(f"  {pos['key']:<4}  ---")
-
+    print(f"  Budget: {fmt_m(manager.budget_m)}")
+    print(f"  {_roster_header_line(manager)}")
+    print(f"  {_non_hg_header_line(manager)}          Sales: {manager.tottenham_sales_count}/{manager.config['max_tottenham_sales']}")
+    print(f"  Wages: £{manager.total_wages_m_rounded()}M/yr")
     print()
-    print("  FULL ROSTER (on pitch)")
-    print("  " + "-" * 72)
-    for p in sorted(manager.get_on_pitch(), key=lambda x: (x.depth_pos, x.depth_slot, x.name)):
-        slot = "abc"[p.depth_slot]
-        print(f"  {p.display_line()}  [{p.depth_pos}-{slot}]")
-
+    pitch = _build_pitch_grid(manager)
+    _print_layout(
+        _build_left_sidebar(manager),
+        pitch,
+        _build_right_sidebar(manager, len(pitch)),
+    )
     print()
-    print("  FINANCIAL SUMMARY")
-    print("  " + "-" * 50)
-    print(f"  Budget remaining:     {fmt_m(manager.budget_m)}")
-    print(f"  Annual wage bill:     {manager.total_wages_m_rounded()}M")
-    print(f"  Tottenham sales used: {manager.tottenham_sales_count}/{manager.config['max_tottenham_sales']}")
 
     bought = [p for p in manager.players.values() if p.origin == "market" and p.status == "depth_chart"]
     sold = [p for p in manager.players.values() if p.status == "sold"]
     loaned = [p for p in manager.players.values() if p.status == "loaned_out"]
 
-    print()
     print("  TRANSFERS")
     print("  " + "-" * 50)
     print(f"  Players bought:  {len(bought)}")

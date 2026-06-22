@@ -53,7 +53,7 @@ class Player:
         status = status_label or self.status
         return (
             f"{self.name:<22} {self.position:<4} {self.age:>2}  {self.nationality:<14} "
-            f"{hg:<5} Sale {sale:>3}  Buy {buy:>3}  {fmt_pounds_weekly(self.wages_per_week):>12}  "
+            f"{hg:<5} {sale:>7}  {buy:>7}  {fmt_pounds_weekly(self.wages_per_week):>12}  "
             f"{self.contract_years:>2}yr  {status}"
         )
 
